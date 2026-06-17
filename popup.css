@@ -1,0 +1,334 @@
+/* ── Variables ───────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #ffffff;
+  --bg2:       #f5f5f7;
+  --bg3:       #e8e8ed;
+  --text:      #1d1d1f;
+  --text2:     #6e6e73;
+  --accent:    #6c63ff;
+  --accent-h:  #5a52e0;
+  --green:     #30d158;
+  --red:       #ff453a;
+  --amber:     #ffd60a;
+  --border:    rgba(0,0,0,0.08);
+  --shadow:    0 1px 3px rgba(0,0,0,0.08);
+  --radius:    10px;
+  --radius-sm: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #1c1c1e;
+    --bg2:       #2c2c2e;
+    --bg3:       #3a3a3c;
+    --text:      #f5f5f7;
+    --text2:     #98989d;
+    --border:    rgba(255,255,255,0.08);
+    --shadow:    0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+body {
+  width: 380px;
+  min-height: 120px;
+  max-height: 580px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.header-icon {
+  width: 22px; height: 22px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.header-icon svg { width: 100%; height: 100%; }
+h1 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0;
+}
+
+footer {
+  padding: 6px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.footer-note {
+  font-size: 10px;
+  color: var(--text2);
+}
+
+/* ── Status bar ──────────────────────────────────────────────────────────── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.status-bar.error { color: var(--red); }
+.status-bar.success { color: var(--green); }
+
+/* ── State messages ──────────────────────────────────────────────────────── */
+.state-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  color: var(--text2);
+  text-align: center;
+  gap: 8px;
+}
+.state-msg p { line-height: 1.5; }
+.state-msg .hint { font-size: 11px; }
+.empty-icon { width: 40px; height: 40px; opacity: 0.35; color: var(--text2); }
+
+/* ── Tab list ────────────────────────────────────────────────────────────── */
+#tab-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tab-item {
+  padding: 10px 14px;
+  background: var(--bg);
+  transition: background 0.15s;
+}
+.tab-item:hover { background: var(--bg2); }
+.tab-item.captured { background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
+.tab-item + .tab-item { border-top: 1px solid var(--border); }
+
+/* ── Tab header row ──────────────────────────────────────────────────────── */
+.tab-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tab-favicon {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.tab-favicon-fallback {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  background: var(--bg3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-favicon-fallback svg { width: 10px; height: 10px; color: var(--text2); }
+
+.tab-info { flex: 1; min-width: 0; }
+.tab-title {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-domain {
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-badge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-audible  { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+.badge-muted    { background: color-mix(in srgb, var(--amber) 15%, transparent); color: color-mix(in srgb, var(--amber) 80%, var(--text)); }
+.badge-captured { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.badge-silent   { background: var(--bg3); color: var(--text2); }
+
+/* ── Controls row (shown only when captured) ─────────────────────────────── */
+.tab-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-label {
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg3);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s, background 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: var(--accent-h);
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  border-radius: 2px;
+}
+
+/* Dynamic fill — set via JS style property */
+.slider-track {
+  position: relative;
+  flex: 1;
+}
+
+.quick-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg3); }
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-h); border-color: var(--accent-h); }
+
+.btn-danger {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 20%, transparent);
+}
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--red) 10%, var(--bg2));
+  border-color: var(--red);
+}
+
+.btn-mute.active {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 30%, transparent);
+  background: color-mix(in srgb, var(--amber) 10%, var(--bg2));
+}
+
+.btn-capture {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text2);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--bg3); color: var(--text); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* ── Capture actions row ─────────────────────────────────────────────────── */
+.tab-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+/* ── Section divider ─────────────────────────────────────────────────────── */
+.section-label {
+  padding: 6px 14px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+.spinning { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
