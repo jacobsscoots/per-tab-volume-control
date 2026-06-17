@@ -230,7 +230,7 @@ function buildVolumeControls(tabId, info) {
   const slider = document.createElement('input');
   slider.type = 'range';
   slider.min = 0;
-  slider.max = 200;
+  slider.max = 500;
   slider.step = 1;
   slider.value = Math.round((info.muted ? 0 : info.volume) * 100);
   updateSliderFill(slider);
@@ -252,6 +252,17 @@ function buildVolumeControls(tabId, info) {
   volumeRow.appendChild(volLabel);
   wrap.appendChild(volumeRow);
 
+  // High-boost warning
+  const warnEl = document.createElement('div');
+  warnEl.className = 'boost-warning' + (info.volume > 2 && !info.muted ? '' : ' hidden');
+  warnEl.textContent = '⚠ High boost may distort audio.';
+  wrap.appendChild(warnEl);
+
+  slider.addEventListener('input', () => {
+    const v = slider.valueAsNumber / 100;
+    warnEl.classList.toggle('hidden', v <= 2);
+  });
+
   // ── Quick buttons ──
   const quickBtns = document.createElement('div');
   quickBtns.className = 'quick-btns';
@@ -263,7 +274,7 @@ function buildVolumeControls(tabId, info) {
   muteBtn.addEventListener('click', () => onToggleMute(tabId));
   quickBtns.appendChild(muteBtn);
 
-  for (const pct of [50, 100, 150, 200]) {
+  for (const pct of [100, 200, 300, 500]) {
     const btn = document.createElement('button');
     btn.className = 'btn';
     btn.textContent = `${pct}%`;
@@ -289,17 +300,16 @@ function buildVolumeControls(tabId, info) {
 }
 
 function updateSliderFill(slider) {
-  const pct = (slider.valueAsNumber / slider.max) * 100;
-  // 100% is the midpoint; accent up to 100%, red-ish above
-  const midPct = 50; // 100 out of 200 = 50%
-  if (pct <= midPct) {
-    slider.style.background = `linear-gradient(to right, var(--accent) ${pct * 2}%, var(--bg3) ${pct * 2}%)`;
+  // 100% volume = 20% of the slider track (100 out of 500)
+  const trackPct = (slider.valueAsNumber / slider.max) * 100;
+  const normalPct = (100 / slider.max) * 100; // = 20
+  if (trackPct <= normalPct) {
+    const fill = (trackPct / normalPct) * 100;
+    slider.style.background = `linear-gradient(to right, var(--accent) ${trackPct}%, var(--bg3) ${trackPct}%)`;
   } else {
-    const overPct = (pct - midPct) * 2;
+    const overRatio = Math.min((trackPct - normalPct) / (100 - normalPct), 1) * 100;
     slider.style.background =
-      `linear-gradient(to right, var(--accent) 100%, var(--red) 100%)`;
-    slider.style.background =
-      `linear-gradient(to right, var(--accent) 50%, color-mix(in srgb, var(--red) ${overPct}%, var(--accent)) ${pct}%, var(--bg3) ${pct}%)`;
+      `linear-gradient(to right, var(--accent) ${normalPct}%, color-mix(in srgb, var(--red) ${overRatio}%, var(--accent)) ${trackPct}%, var(--bg3) ${trackPct}%)`;
   }
 }
 

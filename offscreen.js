@@ -112,6 +112,6 @@ function stopCapture(tabId) {
 }
 
 function clampVolume(v) {
-  // Slider is 0–200 (%), stored as 0.0–2.0 float
-  return Math.max(0, Math.min(2, Number(v) || 0));
+  // Slider is 0–500 (%), stored as 0.0–5.0 float
+  return Math.max(0, Math.min(5, Number(v) || 0));
 }

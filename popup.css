@@ -328,6 +328,13 @@ input[type="range"]::-webkit-slider-runnable-track {
   color: var(--text2);
 }
 
+/* ── Boost warning ───────────────────────────────────────────────────────── */
+.boost-warning {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--amber) 80%, var(--text));
+  padding: 2px 0 0;
+}
+
 /* ── Utility ─────────────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 .spinning { animation: spin 0.7s linear infinite; }
