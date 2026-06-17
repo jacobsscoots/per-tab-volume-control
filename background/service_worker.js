@@ -108,7 +108,9 @@ async function startCapture(tabId, volume) {
 
   await ensureOffscreenDocument();
 
-  capturedTabs[tabId] = { volume, muted: false, status: 'capturing' };
+  let origin = null;
+  try { const t = await chrome.tabs.get(tabId); origin = t?.url ? new URL(t.url).origin : null; } catch (_) {}
+  capturedTabs[tabId] = { volume, muted: false, status: 'capturing', origin };
   await persistState();
 
   // Send to offscreen — it will call getUserMedia with streamId
@@ -254,8 +256,15 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-  // If a captured tab navigates to a new page, its audio stream is gone
-  if (capturedTabs[tabId] && changeInfo.url) {
+  if (!capturedTabs[tabId] || !changeInfo.url) return;
+
+  const oldOrigin = capturedTabs[tabId].origin;
+  let newOrigin;
+  try { newOrigin = new URL(changeInfo.url).origin; } catch (_) { newOrigin = null; }
+
+  if (!oldOrigin || !newOrigin || oldOrigin !== newOrigin) {
+    // True cross-origin navigation — the tab's audio stream is gone
     await stopCapture(tabId);
   }
+  // Same-origin SPA navigation (e.g. Instagram Reels) — stream stays alive, keep state
 });
