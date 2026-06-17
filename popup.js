@@ -149,29 +149,47 @@ function buildTabRow(tab, capturedTabs) {
 
   li.appendChild(header);
 
+  const actions = document.createElement('div');
+  actions.className = 'tab-actions';
+
   if (isCaptured) {
     // ── Volume controls ──
     li.appendChild(buildVolumeControls(tab.id, info));
+    return li; // skip actions block
+  } else if (isCallSystemHost(tab)) {
+    // ── Call-safe block ──
+    const note = document.createElement('span');
+    note.style.cssText = 'font-size:10px;color:var(--text2)';
+    note.textContent = 'Blocked for call recording safety';
+    note.title = 'This extension does not control SmartAgent/Acqueon call tabs.';
+    actions.appendChild(note);
+  } else if (!isCapturableUrl(tab.url)) {
+    // ── Uncapturable page (chrome://, extension pages, etc.) ──
+    const note = document.createElement('span');
+    note.style.cssText = 'font-size:10px;color:var(--text2)';
+    note.textContent = 'Cannot capture this page';
+    actions.appendChild(note);
   } else if (tab.audible || tab.mutedInfo?.muted) {
-    // ── Capture button ──
-    const actions = document.createElement('div');
-    actions.className = 'tab-actions';
+    // ── Capture button — aware of Chrome-muted state ──
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary btn-capture';
-    btn.textContent = 'Control Volume';
+    if (tab.mutedInfo?.muted) {
+      btn.textContent = 'Unmute & Control Volume';
+      btn.title = 'Will unmute this tab in Chrome, then apply extension volume control';
+    } else {
+      btn.textContent = 'Control Volume';
+    }
     btn.addEventListener('click', () => onStartCapture(tab.id));
     actions.appendChild(btn);
-    li.appendChild(actions);
   } else {
-    // Silent tab — just show note
-    const actions = document.createElement('div');
-    actions.className = 'tab-actions';
+    // ── Silent tab ──
     const note = document.createElement('span');
     note.style.cssText = 'font-size:10px;color:var(--text2)';
     note.textContent = 'Play audio to control';
     actions.appendChild(note);
-    li.appendChild(actions);
   }
+
+  li.appendChild(actions);
 
   return li;
 }
@@ -204,7 +222,7 @@ function buildBadge(tab, isCaptured, isMuted) {
   const badge = document.createElement('span');
   badge.className = 'tab-badge';
   if (isCaptured) {
-    badge.textContent = isMuted ? 'MUTED' : 'ACTIVE';
+    badge.textContent = isMuted ? 'EXT MUTED' : 'ACTIVE';
     badge.classList.add(isMuted ? 'badge-muted' : 'badge-captured');
   } else if (tab.mutedInfo?.muted) {
     badge.textContent = 'MUTED';
@@ -267,10 +285,13 @@ function buildVolumeControls(tabId, info) {
   const quickBtns = document.createElement('div');
   quickBtns.className = 'quick-btns';
 
-  // Mute toggle
+  // Extension-level mute — sets GainNode gain to 0, does NOT Chrome-mute the tab
   const muteBtn = document.createElement('button');
   muteBtn.className = 'btn btn-mute' + (info.muted ? ' active' : '');
-  muteBtn.textContent = info.muted ? '🔇 Unmute' : '🔇 Mute';
+  muteBtn.textContent = info.muted ? '🔇 Muted by extension' : '🔇 Mute';
+  muteBtn.title = info.muted
+    ? 'Extension mute is on (gain = 0). Tab is not Chrome-muted.'
+    : 'Mute via extension gain (does not touch Chrome tab mute)';
   muteBtn.addEventListener('click', () => onToggleMute(tabId));
   quickBtns.appendChild(muteBtn);
 
@@ -318,8 +339,22 @@ function updateSliderFill(slider) {
 async function onStartCapture(tabId) {
   showStatus('Capturing audio…');
   try {
-    // Read any saved volume preference for this tab's origin
     const tab = await chrome.tabs.get(tabId);
+
+    // Hard block: never attempt capture on call system tabs
+    if (isCallSystemHost(tab)) {
+      showStatus('Blocked: call tabs cannot be volume-controlled.', 'error');
+      return;
+    }
+
+    // If Chrome has muted this tab, unmute it first — tabCapture requires the
+    // tab to be producing audible output. Only done on explicit user click.
+    if (tab.mutedInfo?.muted) {
+      showStatus('Unmuting tab…');
+      await chrome.tabs.update(tabId, { muted: false });
+    }
+
+    // Read any saved volume preference for this tab's origin
     let volume = 1.0;
     try {
       const origin = new URL(tab.url).origin;
@@ -371,6 +406,22 @@ function sendToSW(message) {
     console.warn('[Popup] SW message error:', err);
     return null;
   });
+}
+
+// ── URL / host helpers ─────────────────────────────────────────────────────
+
+function getHostname(tab) {
+  try { return new URL(tab.url || '').hostname.toLowerCase(); } catch (_) { return ''; }
+}
+
+function isCallSystemHost(tab) {
+  const h = getHostname(tab);
+  // Block SmartAgent and Acqueon: do not capture/alter call-recording audio
+  return h === 'tw.smartagent.app' || h.includes('smartagent') || h.includes('acqueon');
+}
+
+function isCapturableUrl(url) {
+  return /^https?:\/\//i.test(url || '');
 }
 
 function showStatus(msg, type = '') {

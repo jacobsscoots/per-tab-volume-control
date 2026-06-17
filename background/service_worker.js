@@ -103,6 +103,17 @@ async function handleMessage(message) {
 // ── Core operations ────────────────────────────────────────────────────────
 
 async function startCapture(tabId, volume) {
+  // Safety guard (defense-in-depth): never capture call system tabs.
+  // Primary block is in the popup; this catches any direct SW calls.
+  let tabInfo;
+  try { tabInfo = await chrome.tabs.get(tabId); } catch (_) {}
+  if (tabInfo?.url) {
+    const host = new URL(tabInfo.url).hostname.toLowerCase();
+    if (host === 'tw.smartagent.app' || host.includes('smartagent') || host.includes('acqueon')) {
+      throw new Error('Call system tabs cannot be volume-controlled.');
+    }
+  }
+
   // getMediaStreamId must be called while the SW is still active (no async gap)
   const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
 
