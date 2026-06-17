@@ -12,7 +12,12 @@ const activeTabs = new Map();
 // Signal to the service worker that this document is alive
 chrome.runtime.sendMessage({ type: 'OFFSCREEN_READY' }).catch(() => {});
 
+// Messages the offscreen document owns. Everything else is for the SW — ignore it
+// so the SW's onMessage listener can respond without a race.
+const OFFSCREEN_MESSAGES = new Set(['CAPTURE_TAB', 'SET_VOLUME', 'STOP_CAPTURE', 'GET_OFFSCREEN_STATE']);
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!OFFSCREEN_MESSAGES.has(message.type)) return false; // not for us
   handleMessage(message)
     .then(sendResponse)
     .catch(err => sendResponse({ success: false, error: err.message }));
