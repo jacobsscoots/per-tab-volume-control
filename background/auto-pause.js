@@ -105,7 +105,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         }
       }
     } else {
-      if (sender.tab || sender.id !== chrome.runtime.id) return { error: 'invalid_sender' };
+      if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('popup.html')) return { error: 'invalid_sender' };
       if (message.type === 'MUSIC_SET_ENABLED' && typeof message.enabled === 'boolean') {
         await chrome.storage.local.set({ autoPauseMusic: message.enabled });
       } else if (message.type !== 'MUSIC_GET_STATE') return { error: 'invalid_message' };

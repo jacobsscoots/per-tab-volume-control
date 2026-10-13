@@ -20,7 +20,7 @@ function harness(saved) {
   let fail = false, zero = false, frameIds = [0, 1];
   const event = () => ({ addListener() {} });
   const chrome = {
-    runtime: { id: 'test-extension', onMessage: { addListener: fn => listeners.push(fn) }, onInstalled: event() },
+    runtime: { id: 'test-extension', getURL: file => 'chrome-extension://test-extension/' + file, onMessage: { addListener: fn => listeners.push(fn) }, onInstalled: event() },
     storage: {
       session: { get: async () => structuredClone(session), set: async obj => Object.assign(session, structuredClone(obj)) },
       local: { get: async defaults => ({ ...defaults, ...local }), set: async obj => Object.assign(local, obj) }
@@ -44,7 +44,7 @@ function harness(saved) {
   vm.runInContext(read('background/auto-pause.js'), context);
   const sender = { id: 'test-extension', tab: { id: 1 }, frameId: 0, url: 'https://tw.smartagent.app/' };
   const message = (state, customSender = sender) => new Promise(resolve => listeners[0]({ type: 'MUSIC_CALL_STATE', state }, customSender, resolve));
-  const popup = msg => new Promise(resolve => listeners[0](msg, { id: 'test-extension' }, resolve));
+  const popup = msg => new Promise(resolve => listeners[0](msg, { id: 'test-extension', url: 'chrome-extension://test-extension/popup.html' }, resolve));
   return { message, popup, injections, updates, tabs, session, sender, fail: () => { fail = true; }, zero: () => { zero = true; }, frames: ids => { frameIds = ids; } };
 }
 test('pause all supported platforms; fallback mutes other audio; call and pre-muted tabs protected', async () => {
