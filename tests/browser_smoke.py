@@ -83,7 +83,7 @@ def route_fixture(route):
 def run():
     with sync_playwright() as playwright, tempfile.TemporaryDirectory() as profile:
         context = playwright.chromium.launch_persistent_context(
-            profile, channel="chromium", headless=True,
+            profile, channel="chromium", headless=True, ignore_default_args=["--mute-audio"],
             args=[f"--disable-extensions-except={ROOT}", f"--load-extension={ROOT}",
                   "--autoplay-policy=no-user-gesture-required", "--no-sandbox"])
         try:
