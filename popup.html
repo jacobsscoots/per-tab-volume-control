@@ -25,6 +25,11 @@
     <span id="status-text"></span>
   </div>
 
+  <section style="padding: 12px 16px">
+    <label><input id="music-toggle" type="checkbox"> Pause music during SmartAgent calls</label>
+    <p id="music-status" aria-live="polite">Checking call status…</p>
+  </section>
+
   <main>
     <div id="loading" class="state-msg">Loading tabs…</div>
     <div id="empty" class="state-msg hidden">
@@ -42,5 +47,7 @@
   </footer>
 
   <script src="popup.js"></script>
+  <script src="music-popup.js"></script>
 </body>
 </html>
+
