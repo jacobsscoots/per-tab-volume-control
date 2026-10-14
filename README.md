@@ -1,6 +1,8 @@
 # Per-Tab Volume Control
 
-A Chrome Manifest V3 extension that lets you control the audio volume for each browser tab individually, using real Web Audio routing — not just UI-only sliders.
+A Chrome Manifest V3 extension with per-tab volume controls and automatic music pausing during SmartAgent calls.
+
+Automatic pause is enabled by default. Spotify Web, SoundCloud, YouTube and YouTube Music pause on call and resume off call. Desktop music apps are not supported. See [setup and verification](docs/automatic-music-pause.md).
 
 ---
 
@@ -61,11 +63,13 @@ Offscreen Document (offscreen.html / offscreen.js)
 | `storage`     | Persist volume preferences per-origin (`chrome.storage.local`) and track which tabs are currently captured across service-worker restarts (`chrome.storage.session`). |
 | `offscreen`   | Create an offscreen document that stays alive when the popup closes, so Web Audio processing (GainNode) continues and users keep hearing audio. Service workers cannot run Web Audio or `getUserMedia` directly. |
 
-No host permissions (`<all_urls>`) are used. The extension does not read or modify web page content.
+Automatic music pause uses scoped host permissions for SmartAgent and supported music sites. `scripting` pauses/resumes music controls; `webNavigation` removes stale iframe call state. The detector reads only the agent's own status and call controls. No customer details or raw page text are stored or transmitted. Other audible tabs use a mute/unmute fallback without page injection.
 
 ---
 
 ## Testing
+
+Run `npm run check` and `npm test`. The automatic music feature also has a [work-PC smoke checklist](docs/automatic-music-pause.md#verify-on-the-agents-work-pc).
 
 ### Setup
 - Open several tabs: YouTube, Spotify Web Player, any HTML5 video/audio page.
@@ -123,3 +127,4 @@ The stream ID returned by `chrome.tabCapture.getMediaStreamId()` is short-lived 
 - **EQ / compressor**: The Web Audio pipeline could easily be extended with a `DynamicsCompressorNode` or `BiquadFilterNode`.
 - **Visual audio meter**: Add a live `AnalyserNode` to the pipeline and draw a small VU meter in the popup.
 - **True PNG icon with alpha**: Replace the generated icon with a proper design with transparency.
+

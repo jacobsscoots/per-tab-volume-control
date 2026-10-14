@@ -1,21 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Per-Tab Volume Control",
-  "version": "1.0.0",
-  "description": "Control audio volume individually per browser tab using real Web Audio routing.",
-
+  "version": "1.1.0",
+  "description": "Per-tab volume control and automatic music pause/resume during SmartAgent calls.",
   "permissions": [
     "tabs",
     "activeTab",
     "tabCapture",
     "storage",
-    "offscreen"
+    "offscreen",
+    "scripting",
+    "webNavigation"
   ],
-
   "background": {
     "service_worker": "background/service_worker.js"
   },
-
   "action": {
     "default_popup": "popup.html",
     "default_title": "Per-Tab Volume Control",
@@ -25,10 +24,30 @@
       "128": "icons/icon128.png"
     }
   },
-
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "host_permissions": [
+    "https://*.smartagent.app/*",
+    "https://open.spotify.com/*",
+    "https://*.youtube.com/*",
+    "https://youtube.com/*",
+    "https://soundcloud.com/*",
+    "https://*.soundcloud.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.smartagent.app/*"
+      ],
+      "js": [
+        "content/call-detector.js"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "minimum_chrome_version": "116"
 }

@@ -1,3 +1,5 @@
+importScripts('media-control.js', 'auto-pause.js');
+
 // Per-Tab Volume Control — Background Service Worker
 // Responsibilities:
 //  • Maintain state of which tabs are captured and their volume/mute settings
@@ -46,6 +48,7 @@ init();
 // ── Message handling ───────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type?.startsWith('MUSIC_')) return false;
   handleMessage(message, sender)
     .then(sendResponse)
     .catch(err => sendResponse({ success: false, error: err.message }));
@@ -279,3 +282,4 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
   }
   // Same-origin SPA navigation (e.g. Instagram Reels) — stream stays alive, keep state
 });
+
